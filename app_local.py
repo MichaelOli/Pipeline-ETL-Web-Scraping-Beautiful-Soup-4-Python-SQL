@@ -1,8 +1,20 @@
+
 import requests
 from bs4 import BeautifulSoup
 import time
 import sqlite3
 import pandas as pd
+import asyncio
+from telegram import Bot
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Configurações do bot do Telegram
+TOKEN = os.getenv('TELEGRAM_TOKEN')
+CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+bot = Bot(token=TOKEN)
 
 def fetch_page():
     url = 'https://www.mercadolivre.com.br/carrinho-beb-napoli-beb-conforto-e-base-galzerano/p/MLB32171624#polycard_client=search-nordic&wid=MLB3694585439&sid=search&searchVariation=MLB32171624&position=5&search_layout=grid&type=product&tracking_id=34c9eefe-66c4-4dfa-8606-ea3b92afc1e6'
@@ -27,7 +39,7 @@ def parse_page(html):
         'timestamp': timestamp
     }
 
-def create_connection(db_name='CarrinhoDoJoao.db'):
+def create_connection(db_name='CarrinhoDoJoaodb'):
     """Cria uma conexão com o banco de dados SQLite."""
     conn = sqlite3.connect(db_name)
     return conn
@@ -61,35 +73,47 @@ def get_max_price(conn):
         return result[0], result[1]
     return None, None
 
-# Função principal
-if __name__ == '__main__':
-    # Configuração do banco de dados
+async def send_telegram_message(text):
+    """Envia uma mensagem para o Telegram."""
+    await bot.send_message(chat_id=CHAT_ID, text=text)
+
+async def main():
     conn = create_connection()
     setup_database(conn)
 
-    while True:
-        # Faz a requisição e parseia a página
-        page_content = fetch_page()
-        product_info = parse_page(page_content)
-        current_price = product_info['new_price']
-        
-        # Obtém o maior preço já salvo
-        max_price, max_price_timestamp = get_max_price(conn)
-        
-        # Comparação de preços
-        if max_price is None or current_price > max_price:
-            print(f"Preço maior detectado: {current_price}")
-            max_price = current_price  # Atualiza o maior preço
-            max_price_timestamp = product_info['timestamp']  # Atualiza o timestamp do maior preço
-        else:
-            print(f"O maior preço registrado é {max_price} em {max_price_timestamp}")
+    try:
+        while True:
+            # Faz a requisição e parseia a página
+            page_content = fetch_page()
+            product_info = parse_page(page_content)
+            current_price = product_info['new_price']
+            
+            # Obtém o maior preço já salvo
+            max_price, max_price_timestamp = get_max_price(conn)
+            
+            # Comparação de preços
+            if max_price is None or current_price > max_price:
+                message = f"Novo preço maior detectado: {current_price}"
+                print(message)
+                await send_telegram_message(message)
+                max_price = current_price
+                max_price_timestamp = product_info['timestamp']
+            else:
+                message = f"O maior preço registrado é {max_price} em {max_price_timestamp}"
+                print(message)
+                await send_telegram_message(message)
 
-        # Salva os dados no banco de dados SQLite
-        save_to_database(conn, product_info)
-        print("Dados salvos no banco:", product_info)
-        
-        # Aguarda 10 segundos antes da próxima execução
-        time.sleep(10)
+            # Salva os dados no banco de dados SQLite
+            save_to_database(conn, product_info)
+            print("Dados salvos no banco:", product_info)
+            
+            # Aguarda 10 segundos antes da próxima execução
+            await asyncio.sleep(10)
 
-    # Fecha a conexão com o banco de dados
-    conn.close()
+    except KeyboardInterrupt:
+        print("Parando a execução...")
+    finally:
+        conn.close()
+
+# Executa o loop assíncrono
+asyncio.run(main())

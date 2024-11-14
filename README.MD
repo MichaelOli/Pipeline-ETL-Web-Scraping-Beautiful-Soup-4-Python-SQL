@@ -47,9 +47,9 @@ Esse módulo compara o preço atual do produto com o max_price definido pelo usu
 Esse módulo utiliza a biblioteca python-telegram-bot para enviar uma mensagem ao Telegram informando que o preço atingiu o valor desejado.
 
 Como Executar
-Clone o Repositório:
+Clone o Repositório: https://github.com/MichaelOli/Pipeline-ETL-Web-Scraping-Beautiful-Soup-4-Python-SQL.git
 
-git clone 
+git clone :https://github.com/MichaelOli/Pipeline-ETL-Web-Scraping-Beautiful-Soup-4-Python-SQL.git
 cd WEBSCRAPPING
 Instale as Dependências:
 
@@ -135,8 +135,8 @@ sudo apt install git -y
 Clonar o Repositório
 Clone o repositório do projeto no diretório /home/ubuntu:
 
-sudo git clone https://github.com/lvgalvao/IphoneProjectWebScraping.git
-cd IphoneProjectWebScraping
+sudo git clone https://github.com/MichaelOli/Pipeline-ETL-Web-Scraping-Beautiful-Soup-4-Python-SQL.git
+cd pasta>do>projeto\WebScraping
 5. Instalar o Docker
 5.1 Instalar Dependências do Docker
 Primeiro, instale os pacotes necessários para adicionar o repositório do Docker:
